@@ -104,6 +104,41 @@
   .matrix-tip{background:rgba(95,165,120,.08);border:1px solid rgba(95,165,120,.25);border-radius:8px;padding:10px 12px;margin:0 0 12px;color:#cfe4d6;font-size:.82rem;}
   .matrix-tip b{color:#8cc99f;}
 
+
+
+  /* top section navigation */
+  .section-nav{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    padding:16px 20px 0;
+  }
+  .section-nav a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-height:48px;
+    text-decoration:none;
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    color:#c3c8d6;
+    font-size:.86rem;
+    font-weight:700;
+    transition:.18s;
+  }
+  .section-nav a:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px);}
+  .section-nav .nav-ico{font-size:1.1rem;line-height:1;}
+  .section-nav a.matrix-link{
+    background:linear-gradient(135deg,var(--gold),#dabb66);
+    border-color:var(--gold);
+    color:var(--navy);
+    box-shadow:0 10px 26px rgba(201,168,76,.18);
+  }
+  .section-nav a.matrix-link:hover{color:var(--navy);filter:brightness(1.04);}
+  @media(max-width:720px){.section-nav{grid-template-columns:1fr 1fr;padding:12px 20px 0}.section-nav a{font-size:.8rem;min-height:44px;}}
+
   /* matrix */
   .matrix-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border:1px solid var(--line);border-radius:8px;}
   table{border-collapse:collapse;width:100%;min-width:640px;}
@@ -173,45 +208,108 @@
   /* print-only area: hidden on screen, shown only when printing */
   #printArea{display:none;}
 
-  @page{size:A4 landscape;margin:12mm;}
+  @page{
+    size:A4 landscape;
+    margin:8mm 7mm 9mm;
+  }
   @media print{
-    html,body{background:#fff!important;color:#111!important;direction:rtl;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    body *{visibility:hidden!important;}
-    #printArea,#printArea *{visibility:visible!important;}
+    html,body{
+      background:#fff!important;
+      color:#111!important;
+      direction:rtl;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+      margin:0!important;
+      padding:0!important;
+    }
+    body > *:not(#printArea){display:none!important;}
     #printArea{
       display:block!important;
-      position:absolute;
-      inset:0;
-      padding:0;
+      position:static!important;
+      padding:0!important;
+      margin:0!important;
       font-family:'IBM Plex Sans Arabic',Tahoma,Arial,sans-serif;
       color:#111;
       direction:rtl;
+      width:100%;
     }
-    #printArea .print-sheet{width:100%;}
-    #printArea .print-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #c9a84c;padding-bottom:10px;margin-bottom:12px;}
-    #printArea .print-kicker{color:#a8862f;font-size:10px;font-weight:800;margin-bottom:3px;}
-    #printArea h1{color:#0a0e1a;font-size:20px;line-height:1.35;margin:0 0 3px;font-weight:800;max-width:none;}
-    #printArea .print-company{color:#34405a;font-size:13px;font-weight:700;}
-    #printArea .print-meta{text-align:left;color:#555;font-size:10px;line-height:1.7;min-width:160px;}
-    #printArea .print-summary{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
-    #printArea .print-pill{border:1px solid #ddd;border-radius:999px;padding:4px 10px;font-size:10px;color:#333;background:#fafafa;}
-    #printArea table{width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:auto;}
-    #printArea thead{display:table-header-group;}
-    #printArea tr{page-break-inside:avoid;page-break-after:auto;}
-    #printArea th,#printArea td{border:1px solid #cfd3dc;padding:6px 5px;font-size:9.5px;line-height:1.45;text-align:center;vertical-align:middle;color:#111;}
-    #printArea thead th{background:#eef1f6!important;color:#0a0e1a;font-weight:800;}
-    #printArea tbody th{text-align:right;background:#f8f9fb!important;color:#0a0e1a;font-weight:700;width:25%;}
+    #printArea .print-doc{
+      width:100%;
+      margin:0;
+      padding:0;
+    }
+    #printArea .print-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      border-bottom:2px solid #c9a84c;
+      padding-bottom:6px;
+      margin-bottom:7px;
+      page-break-after:avoid;
+      break-after:avoid;
+    }
+    #printArea .print-kicker{color:#a8862f;font-size:9.5px;font-weight:800;margin-bottom:1px;}
+    #printArea h1{color:#0a0e1a;font-size:18px;line-height:1.2;margin:0 0 1px;font-weight:800;max-width:none;}
+    #printArea .print-company{color:#34405a;font-size:12.5px;font-weight:800;}
+    #printArea .print-meta{text-align:left;color:#555;font-size:9.5px;line-height:1.5;min-width:160px;}
+    #printArea .print-summary{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 7px;page-break-after:avoid;break-after:avoid;}
+    #printArea .print-pill{border:1px solid #ddd;border-radius:999px;padding:3px 8px;font-size:9px;color:#333;background:#fafafa;}
+    #printArea .print-table-wrap{width:100%;page-break-inside:auto!important;break-inside:auto!important;}
+    #printArea table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+      page-break-inside:auto!important;
+      break-inside:auto!important;
+    }
+    #printArea thead{display:table-header-group!important;}
+    #printArea tbody{display:table-row-group!important;}
+    #printArea tr{page-break-inside:auto!important;break-inside:auto!important;page-break-after:auto!important;}
+    #printArea th,#printArea td{
+      border:1px solid #cfd3dc;
+      padding:5.5px 5px;
+      font-size:10.4px;
+      line-height:1.45;
+      text-align:center;
+      vertical-align:middle;
+      color:#111;
+      word-break:normal;
+      overflow-wrap:anywhere;
+    }
+    #printArea thead th{background:#eef1f6!important;color:#0a0e1a;font-weight:800;font-size:10.5px;}
+    #printArea tbody th{text-align:right;background:#f8f9fb!important;color:#0a0e1a;font-weight:800;width:30%;}
+    #printArea table.many-cols th,#printArea table.many-cols td{font-size:9.4px;padding:4.5px 4px;line-height:1.35;}
+    #printArea table.many-cols tbody th{width:28%;}
     #printArea td.none{color:#8a8f9d;background:#fafafa!important;}
     #printArea td.inform{background:#f1f3f7!important;}
     #printArea td.consult{background:#e8edf6!important;}
     #printArea td.review{background:#dde5f4!important;}
     #printArea td.recommend{background:#fff6df!important;}
     #printArea td.decide{background:#c9a84c!important;color:#0a0e1a!important;font-weight:800;}
-    #printArea .print-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:1px solid #e4e7ee;padding-top:8px;}
-    #printArea .print-legend-item{font-size:9px;color:#444;display:flex;align-items:center;gap:4px;}
-    #printArea .print-swatch{width:10px;height:10px;border-radius:2px;border:1px solid #ccc;display:inline-block;}
-    #printArea .print-note{font-size:9px;color:#666;line-height:1.7;margin-top:8px;}
-    header,main,footer,#toast{display:none!important;}
+    #printArea .print-legend{
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+      margin:7px 0 0;
+      border-top:1px solid #e4e7ee;
+      padding-top:6px;
+      page-break-inside:avoid;
+      break-inside:avoid;
+    }
+    #printArea .print-legend-item{font-size:8.5px;color:#444;display:flex;align-items:center;gap:4px;}
+    #printArea .print-swatch{width:8px;height:8px;border-radius:2px;border:1px solid #ccc;display:inline-block;}
+    #printArea .print-end-note{
+      margin-top:7px;
+      padding-top:5px;
+      border-top:1px solid #e4e7ee;
+      color:#666;
+      font-size:8.5px;
+      line-height:1.6;
+      page-break-inside:avoid;
+      break-inside:avoid;
+    }
+
   }
 </style>
 </head>
@@ -272,9 +370,16 @@
   </div>
 </header>
 
+<nav class="section-nav wrap" aria-label="فقرات الصفحة">
+  <a href="#why"><span class="nav-ico">💡</span><span>لماذا؟</span></a>
+  <a href="#sizes"><span class="nav-ico">🏢</span><span>حجم الشركة</span></a>
+  <a href="#setup"><span class="nav-ico">⚙️</span><span>الإعداد</span></a>
+  <a class="matrix-link" href="#matrix"><span class="nav-ico">🧭</span><span>المصفوفة</span></a>
+</nav>
+
 <main class="wrap">
 
-  <section>
+  <section id="why">
     <div class="card">
       <h2><span class="num">1</span>لماذا تحتاج كل شركة مصفوفة صلاحيات</h2>
       <p>مصفوفة الصلاحيات أداة تشغيلية يومية تحسم من يملك حق القرار قبل وقوع الخلاف، وليست وثيقة تُحفظ في الأرشيف دون استخدام.</p>
@@ -300,7 +405,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="sizes">
     <div class="card">
       <h2><span class="num">2</span>أداة واحدة لكل حجم شركة</h2>
       <p>الشركة الصغيرة والكبيرة تحتاجان مصفوفة صلاحيات بالقدر نفسه، والفرق بينهما في تعقيد المصفوفة وليس في أصل الحاجة إليها.</p>
@@ -322,7 +427,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="setup">
     <div class="card">
       <h2><span class="num">3</span>إعداد المصفوفة</h2>
       <div class="setup-row">
@@ -347,7 +452,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="matrix">
     <div class="card">
       <h2><span class="num">4</span>المصفوفة</h2>
       <div class="matrix-tip"><b>تنبيه مهم:</b> الخانة الافتراضية “غير معني” لا تعني أن المصفوفة مكتملة. اضغط على الخلية أكثر من مرة حتى تصل للصلاحية المناسبة، واجعل لكل قرار جهة واحدة فقط للاعتماد النهائي.</div>
@@ -458,7 +563,7 @@
       const decideCount = row.cells.filter(c => LEVELS[c].key==='decide').length;
       const flagClass = decideCount === 1 ? 'flag-ok' : 'flag-warn';
       const flagTitle = decideCount === 1 ? 'جهة اعتماد نهائي واحدة' : (decideCount === 0 ? 'لا توجد جهة اعتماد نهائي' : 'أكثر من جهة اعتماد نهائي');
-      html += `<tr><th><button class="row-remove no-print" onclick="AM.removeRow(${rowIdx})" title="حذف الصف">✕</button><span class="row-flag ${flagClass}" title="${flagTitle}"></span>${escapeHtml(row.name)}</th>`;
+      html += `<tr><th><button class="row-remove no-print" onclick="AM.removeRow(${rowIdx})" title="حذف الصف">✕</button><span class="row-flag ${flagClass}" title="${flagTitle}"></span>${escapeHtml(cleanPrintRowName(row.name))}</th>`;
       row.cells.forEach((cellVal,colIdx)=>{
         const lvl = LEVELS[cellVal];
         const displayLabel = lvl.key === 'blank' ? '' : lvl.label;
@@ -523,15 +628,63 @@
     render();
   });
 
+  function getCompanyName(){
+    return document.getElementById('companyName').value.trim();
+  }
+
+  function safeFileName(s){
+    return (s || '')
+      .replace(/[\\/:*?"<>|]+/g,' ')
+      .replace(/\s+/g,' ')
+      .trim()
+      .slice(0,80);
+  }
+
+  function getPrintTitle(){
+    const company = safeFileName(getCompanyName());
+    return company ? `مصفوفة الصلاحيات - ${company}` : 'مصفوفة الصلاحيات';
+  }
+
+  function cleanPrintRowName(name){
+    return String(name || '').replace(/^[×✕✖]\s*/,'').trim();
+  }
+
+  function buildPrintTable(pageRows){
+    const manyCols = roles.length > 6 ? ' many-cols' : '';
+    let html = `<div class="print-table-wrap"><table class="print-table${manyCols}"><thead><tr><th>القرار / الصلاحية</th>`;
+    roles.forEach(r => html += `<th>${escapeHtml(r)}</th>`);
+    html += '</tr></thead><tbody>';
+    pageRows.forEach(item => {
+      const row = item.row || item;
+      html += `<tr><th>${escapeHtml(cleanPrintRowName(row.name))}</th>`;
+      row.cells.forEach(cellVal => {
+        const lvl = LEVELS[cellVal];
+        html += `<td class="${lvl.key}">${lvl.legend || lvl.label}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  function buildLegend(){
+    let html = '<div class="print-legend">';
+    LEVELS.forEach(l => {
+      html += `<div class="print-legend-item"><span class="print-swatch" style="background:${l.color}"></span>${l.label}</div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+
   function buildPrintArea(){
-    const companyName = document.getElementById('companyName').value.trim() || 'اسم الشركة غير محدد';
+    const companyName = getCompanyName() || 'اسم الشركة غير محدد';
     const today = new Date().toLocaleDateString('ar-SA-u-nu-latn');
     const total = rows.length;
     const complete = rows.filter(r => r.cells.filter(c => LEVELS[c].key==='decide').length === 1).length;
     const missing = rows.filter(r => r.cells.filter(c => LEVELS[c].key==='decide').length === 0).length;
     const duplicated = rows.filter(r => r.cells.filter(c => LEVELS[c].key==='decide').length > 1).length;
 
-    let html = `<div class="print-sheet">
+    const html = `<div class="print-doc">
       <div class="print-header">
         <div>
           <div class="print-kicker">أدوات الحوكمة · نايف المحمدي</div>
@@ -548,35 +701,29 @@
         <span class="print-pill">اعتماد نهائي صحيح: ${complete}</span>
         <span class="print-pill">بلا اعتماد نهائي: ${missing}</span>
         <span class="print-pill">اعتماد نهائي مكرر: ${duplicated}</span>
-      </div>`;
-
-    html += '<table><thead><tr><th>القرار / الصلاحية</th>';
-    roles.forEach(r => html += `<th>${escapeHtml(r)}</th>`);
-    html += '</tr></thead><tbody>';
-    rows.forEach(row => {
-      html += `<tr><th>${escapeHtml(row.name)}</th>`;
-      row.cells.forEach(cellVal => {
-        const lvl = LEVELS[cellVal];
-        html += `<td class="${lvl.key}">${lvl.legend || lvl.label}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-
-    html += '<div class="print-legend">';
-    LEVELS.forEach(l => {
-      html += `<div class="print-legend-item"><span class="print-swatch" style="background:${l.color}"></span>${l.label}</div>`;
-    });
-    html += '</div>';
-    html += '<div class="print-note">⚠️ تنبيه: هذه المصفوفة استرشادية، ويجب مواءمتها مع عقد التأسيس أو النظام الأساس وقرارات الشركاء أو مجلس الإدارة والسياسات الداخلية قبل اعتمادها رسميًا.</div>';
-    html += '</div>';
+      </div>
+      ${buildPrintTable(rows)}
+      ${buildLegend()}
+      <div class="print-end-note">⚠️ هذه المصفوفة استرشادية، ويجب مواءمتها مع عقد التأسيس أو النظام الأساس وقرارات الشركاء أو مجلس الإدارة والسياسات الداخلية قبل اعتمادها رسميًا.</div>
+    </div>`;
 
     document.getElementById('printArea').innerHTML = html;
   }
 
+  const ORIGINAL_TITLE = document.title;
+  window.addEventListener('beforeprint', ()=>{
+    buildPrintArea();
+    document.title = getPrintTitle();
+  });
+  window.addEventListener('afterprint', ()=>{
+    document.title = ORIGINAL_TITLE;
+  });
+
   document.getElementById('printBtn').addEventListener('click', ()=>{
     buildPrintArea();
+    document.title = getPrintTitle();
     window.print();
+    setTimeout(()=>{ document.title = ORIGINAL_TITLE; }, 1200);
   });
 
   document.getElementById('resetBtn').addEventListener('click', ()=>{
