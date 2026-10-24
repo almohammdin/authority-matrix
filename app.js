@@ -76,6 +76,7 @@
     h+='</tr></thead><tbody>';
 
     rows.forEach((r,ri)=>{
+      if(!visibleRow(r))return;
       const dc=r.cells.filter(c=>LEVELS[c].key==='decide').length;
       const flagTitle=dc===1?'جهة اعتماد نهائي واحدة':(dc===0?'لا توجد جهة اعتماد نهائي':'أكثر من جهة اعتماد نهائي');
       h+=`<tr><th><button class="row-remove no-print" onclick="AM.removeRow(${ri})" title="حذف القرار" aria-label="حذف القرار">✕</button><span class="row-flag ${dc===1?'flag-ok':'flag-warn'}" title="${flagTitle}"></span>${esc(clean(r.name))}<button class="note-edit no-print" onclick="AM.editNote(${ri})" aria-label="تعديل ملاحظة القرار">ملاحظة</button>${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`;
@@ -90,6 +91,8 @@
     h+='</tbody>';
     table.innerHTML=h;
     updateStatus();
+    const select=document.getElementById('roleView'),previous=select.value;
+    select.innerHTML='<option value="">المصفوفة الشاملة</option>'+roles.map((r,i)=>`<option value="${i}">${esc(r)}</option>`).join('');select.value=previous;
     saveLocal();
   }
 
@@ -116,20 +119,26 @@
 
   const company=()=>document.getElementById('companyName').value.trim();
 
+  function visibleRow(r){const value=document.getElementById('roleView').value;return value===''||r.cells[Number(value)]!==0}
+  document.getElementById('roleView').onchange=()=>render();
   function buildPrint(){
     const total=rows.length;
     const complete=rows.filter(r=>r.cells.filter(c=>LEVELS[c].key==='decide').length===1).length;
     const missing=rows.filter(r=>r.cells.filter(c=>LEVELS[c].key==='decide').length===0).length;
     const dup=rows.filter(r=>r.cells.filter(c=>LEVELS[c].key==='decide').length>1).length;
-    let t='<table><thead><tr><th>القرار / الصلاحية</th>'+roles.map(r=>`<th>${esc(r)}</th>`).join('')+'</tr></thead><tbody>';
-    rows.forEach(r=>{
-      t+=`<tr><th>${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.map(v=>`<td>${LEVELS[v].legend||LEVELS[v].label}</td>`).join('')+'</tr>';
-    });
-    t+='</tbody></table>';
-    document.getElementById('printArea').innerHTML=`<div class="print-header"><div><div class="print-kicker">حتى لحلول الأعمال</div><h1>مصفوفة الصلاحيات</h1><b>${esc(company()||'اسم الشركة غير محدد')}</b></div><div class="print-meta">${new Date().toLocaleDateString('ar-SA-u-nu-latn')}<br>${total} بند</div></div>${document.getElementById('matrixNotes').value?`<div class="print-notes">${esc(document.getElementById('matrixNotes').value)}</div>`:''}<div class="print-summary"><span class="print-pill">صحيح: ${complete}</span><span class="print-pill">ناقص: ${missing}</span><span class="print-pill">مكرر: ${dup}</span></div>${t}<div class="print-legend">${LEVELS.map(l=>`<div class="print-legend-item"><span class="print-swatch" style="background:${l.color}"></span>${l.label}</div>`).join('')}</div>`;
+    const selected=document.getElementById('roleView').value;
+    const filtered=rows.filter(visibleRow),groups=[];
+    for(let start=0;start<roles.length;start+=5)groups.push({start,roles:roles.slice(start,start+5)});
+    const title=selected===''?'المصفوفة الشاملة':'قرارات '+roles[Number(selected)];
+    const notes=document.getElementById('matrixNotes').value;
+    document.getElementById('printArea').innerHTML=groups.map((group,index)=>{
+      const header=`<div class="print-header"><div><img class="print-logo" src="https://almohammdin.github.io/services/assets/hatta/logo.webp" alt="حتى لحلول الأعمال"><h1>مصفوفة الصلاحيات</h1><b>${esc(company()||'اسم الشركة غير محدد')}</b><p>${esc(title)}</p></div><div class="print-meta">${new Date().toLocaleDateString('ar-SA-u-nu-latn')}<br>${filtered.length} قرار · مجموعة المناصب ${index+1} / ${groups.length}</div></div>`;
+      const table='<table><colgroup><col style="width:38%">'+group.roles.map(()=>'<col>').join('')+'</colgroup><thead><tr><th>القرار / الصلاحية وحدودها</th>'+group.roles.map(r=>`<th>${esc(r)}</th>`).join('')+'</tr></thead><tbody>'+filtered.map((r,i)=>`<tr class="${r.note.length>1500?'long-row':''}"><th><span class="decision-number">${i+1}.</span> ${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.slice(group.start,group.start+5).map(v=>`<td style="background:${LEVELS[v].color};color:${LEVELS[v].text}">${LEVELS[v].label}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+      return `<section class="print-group">${header}${index===0&&notes?`<div class="print-notes">${esc(notes)}</div>`:''}<div class="print-summary">فحص المصفوفة الشاملة: ${complete} بجهة اعتماد واحدة · ${missing} دون اعتماد · ${dup} باعتماد مكرر. لا يغني عن المراجعة والاعتماد الرسمي.</div>${table}<div class="print-legend">${LEVELS.map(l=>`<span>${l.label}</span>`).join(' · ')}</div></section>`;
+    }).join('');
   }
+  document.getElementById('printBtn').onclick=async()=>{buildPrint();await document.fonts.ready;await Promise.all([...document.querySelectorAll('#printArea img')].map(i=>i.decode().catch(()=>{})));const previous=document.title;document.title='مصفوفة الصلاحيات - '+(company()||'مسار');window.addEventListener('afterprint',()=>{document.title=previous},{once:true});window.print()};
 
-  document.getElementById('printBtn').onclick=()=>{buildPrint();window.print()};
   document.getElementById('resetBtn').onclick=()=>{
     if(!confirm('سيتم مسح محتوى المصفوفة بالكامل والعودة للحالة الافتراضية. هل تريد المتابعة؟'))return;
     roles=[...DEFAULT_ROLES];
@@ -143,11 +152,7 @@
   function snapshot(){
     return {format:'hatta-authority-matrix',version:1,companyName:company(),notes:document.getElementById('matrixNotes').value,roles:[...roles],rows:rows.map(r=>({name:r.name,note:r.note||'',cells:r.cells.map(c=>LEVELS[c].key)}))};
   }
-  let storageWarning=false;
-  function saveLocal(){
-    try{localStorage.setItem(storageKey,JSON.stringify(snapshot()))}
-    catch(error){if(!storageWarning){storageWarning=true;toast('تعذر الحفظ التلقائي. صدّر البيانات للاحتفاظ بنسختك.')}}
-  }
+  function saveLocal(){window.dispatchEvent(new Event('matrixchange'))}
   function applyData(data){
     roles=[...data.roles];
     rows=data.rows.map(r=>({name:r.name,note:r.note,cells:r.cells.map(c=>LEVELS.findIndex(l=>l.key===c))}));
@@ -191,8 +196,10 @@
   importDialog.addEventListener('close',()=>{pendingImport=null;document.getElementById('importBtn').focus()});
   document.getElementById('companyName').addEventListener('input',saveLocal);
   document.getElementById('matrixNotes').addEventListener('input',saveLocal);
-  try{const saved=localStorage.getItem(storageKey);if(saved)applyData(MatrixData.parse(saved))}catch(error){toast('تعذر استعادة النسخة المحفوظة. يمكنك استيراد ملفك.')}
+  window.AuthorityMatrix={snapshot,load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
+
 
   renderLegend();
   render();
 })();
+
