@@ -123,7 +123,7 @@
     const value=document.getElementById('roleView').value;
     if(value==='')return true;
     if(value==='management')return roles.some((role,i)=>!/(المالك|المدير العام|المدير التنفيذي|المدير المالي|مدير الفرع)/.test(role)&&r.cells[i]>=3&&r.cells[i]<=5);
-    if(value==='branch')return roles.some((role,i)=>/مدير الفرع/.test(role)&&r.cells[i]!==0&&!/^0[12]\\s*\\|/.test(r.name));
+    if(value==='branch')return roles.some((role,i)=>/مدير الفرع/.test(role)&&r.cells[i]!==0&&!/^0[12]\s*\|/.test(r.name));
     return r.cells[Number(value)]!==undefined&&r.cells[Number(value)]!==0;
   }
   document.getElementById('roleView').onchange=()=>render();
@@ -165,10 +165,11 @@
     document.getElementById('companyName').value=data.companyName;
     document.getElementById('matrixNotes').value=data.notes;
   }
-  function exportData(){
-    const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json;charset=utf-8'});
+  function exportData(viewOnly=false){
+    const data=snapshot();if(viewOnly){data.rows=data.rows.filter((r,i)=>visibleRow(rows[i]));const select=document.getElementById('roleView');data.notes='نسخة العرض: '+select.options[select.selectedIndex].text+' | مشتقة من نفس الأصل.\n'+data.notes}
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download=(company()||'authority-matrix').replace(/[<>:"/\\|?*\x00-\x1F]/g,'-')+'.json';
+    a.href=url;const view=document.getElementById('roleView');a.download=(company()||'authority-matrix')+(viewOnly?' - '+view.options[view.selectedIndex].text:'').replace(/[<>:"/\\|?*\x00-\x1F]/g,'-')+'.json';
     document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   const importDialog=document.getElementById('importDialog');
@@ -176,8 +177,9 @@
   let pendingImport=null;
   let importSequence=0;
   document.getElementById('importBtn').onclick=()=>fileInput.click();
-  document.getElementById('exportBtn').onclick=exportData;
-  document.getElementById('backupBtn').onclick=exportData;
+  document.getElementById('exportBtn').onclick=()=>exportData();
+  const viewExport=document.getElementById('viewExportBtn');if(viewExport)viewExport.onclick=()=>exportData(true);
+  document.getElementById('backupBtn').onclick=()=>exportData();
   fileInput.onchange=async()=>{
     const selected=fileInput.files[0],sequence=++importSequence;
     fileInput.value='';pendingImport=null;
