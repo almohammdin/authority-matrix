@@ -92,7 +92,7 @@
     table.innerHTML=h;
     updateStatus();
     const select=document.getElementById('roleView'),previous=select.value;
-    select.innerHTML='<option value="">المصفوفة الشاملة</option>'+roles.map((r,i)=>`<option value="${i}">${esc(r)}</option>`).join('');select.value=previous;
+    select.innerHTML='<option value="">المصفوفة الشاملة</option>'+'<option value="management">مصفوفة الإدارة</option><option value="branch">مصفوفة مدير الفرع</option>'+roles.map((r,i)=>`<option value="${i}">${esc(r)}</option>`).join('');select.value=previous;
     saveLocal();
   }
 
@@ -119,7 +119,13 @@
 
   const company=()=>document.getElementById('companyName').value.trim();
 
-  function visibleRow(r){const value=document.getElementById('roleView').value;return value===''||r.cells[Number(value)]!==0}
+  function visibleRow(r){
+    const value=document.getElementById('roleView').value;
+    if(value==='')return true;
+    if(value==='management')return roles.some((role,i)=>!/(المالك|المدير العام|المدير التنفيذي|المدير المالي|مدير الفرع)/.test(role)&&r.cells[i]>=3&&r.cells[i]<=5);
+    if(value==='branch')return roles.some((role,i)=>/مدير الفرع/.test(role)&&r.cells[i]!==0&&!/^0[12]\\s*\\|/.test(r.name));
+    return r.cells[Number(value)]!==undefined&&r.cells[Number(value)]!==0;
+  }
   document.getElementById('roleView').onchange=()=>render();
   function buildPrint(){
     const total=rows.length;
@@ -129,7 +135,7 @@
     const selected=document.getElementById('roleView').value;
     const filtered=rows.filter(visibleRow),groups=[];
     for(let start=0;start<roles.length;start+=5)groups.push({start,roles:roles.slice(start,start+5)});
-    const title=selected===''?'المصفوفة الشاملة':'قرارات '+roles[Number(selected)];
+    const title=selected===''?'المصفوفة الشاملة':selected==='management'?'مصفوفة الإدارة':selected==='branch'?'مصفوفة مدير الفرع':'قرارات '+roles[Number(selected)];
     const notes=document.getElementById('matrixNotes').value;
     document.getElementById('printArea').innerHTML=groups.map((group,index)=>{
       const header=`<div class="print-header"><div><img class="print-logo" src="https://almohammdin.github.io/services/assets/hatta/logo.webp" alt="حتى لحلول الأعمال"><h1>مصفوفة الصلاحيات</h1><b>${esc(company()||'اسم الشركة غير محدد')}</b><p>${esc(title)}</p></div><div class="print-meta">${new Date().toLocaleDateString('ar-SA-u-nu-latn')}<br>${filtered.length} قرار · مجموعة المناصب ${index+1} / ${groups.length}</div></div>`;
