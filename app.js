@@ -21,7 +21,7 @@
     'اعتماد الميزانية التقديرية السنوية',
     'اعتماد مصروف تشغيلي داخل الميزانية حتى حد معين',
     'اعتماد مصروف أو التزام خارج الميزانية',
-    'توقيع عقد يتجاوز السقف المالي المحدد',
+    'توقيع عقد يتجاوز حد الصلاحية المالية المحدد',
     'فتح فرع أو نشاط جديد',
     'الدخول في استثمار أو مشروع جديد',
     'الاقتراض أو تقديم ضمانات',
@@ -68,7 +68,7 @@
     statusTxt.innerHTML=m;
   }
 
-  function render(){
+  function render(notify=true){
     let h='<thead><tr><th>القرار / الصلاحية</th>';
     roles.forEach((r,i)=>{
       h+=`<th>${roles.length>1?`<button class="role-remove no-print" onclick="AM.removeRole(${i})" title="حذف العمود" aria-label="حذف ${esc(r)}">✕</button>`:''}${esc(r)}</th>`;
@@ -93,7 +93,7 @@
     updateStatus();
     const select=document.getElementById('roleView'),previous=select.value;
     select.innerHTML='<option value="">المصفوفة الشاملة</option>'+'<option value="management">مصفوفة الإدارة</option><option value="branch">مصفوفة مدير الفرع</option>'+roles.map((r,i)=>`<option value="${i}">${esc(r)}</option>`).join('');select.value=previous;
-    saveLocal();
+    if(notify)saveLocal();
   }
 
   window.AM={
@@ -126,7 +126,7 @@
     if(value==='branch')return roles.some((role,i)=>/مدير الفرع/.test(role)&&r.cells[i]!==0&&!/^0[12]\s*\|/.test(r.name));
     return r.cells[Number(value)]!==undefined&&r.cells[Number(value)]!==0;
   }
-  document.getElementById('roleView').onchange=()=>render();
+  document.getElementById('roleView').onchange=()=>render(false);
   function buildPrint(){
     const total=rows.length;
     const complete=rows.filter(r=>r.cells.filter(c=>LEVELS[c].key==='decide').length===1).length;
@@ -166,7 +166,7 @@
     document.getElementById('matrixNotes').value=data.notes;
   }
   function exportData(viewOnly=false){
-    const data=snapshot();if(viewOnly){data.rows=data.rows.filter((r,i)=>visibleRow(rows[i]));const select=document.getElementById('roleView');data.notes='نسخة العرض: '+select.options[select.selectedIndex].text+' | مشتقة من نفس الأصل.\n'+data.notes}
+    const data=snapshot();if(viewOnly){data.rows=data.rows.filter((r,i)=>visibleRow(rows[i]));const select=document.getElementById('roleView');data.notes='نسخة العرض: '+select.options[select.selectedIndex].text+' | مشتقة من المصفوفة المرجعية نفسها.\n'+data.notes}
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=url;const view=document.getElementById('roleView');a.download=(company()||'authority-matrix')+(viewOnly?' - '+view.options[view.selectedIndex].text:'').replace(/[<>:"/\\|?*\x00-\x1F]/g,'-')+'.json';
