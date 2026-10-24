@@ -39,7 +39,7 @@
   const statusTxt=document.getElementById('statusTxt');
   const toastEl=document.getElementById('toast');
 
-  const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const esc=s=>MatrixData.currencyText(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const clean=n=>String(n||'').replace(/^[×✕✖]\s*/,'').trim();
 
   function toast(m){
@@ -156,7 +156,7 @@
 
   const storageKey='hatta-authority-matrix-v1';
   function snapshot(){
-    return {format:'hatta-authority-matrix',version:1,companyName:company(),notes:document.getElementById('matrixNotes').value,roles:[...roles],rows:rows.map(r=>({name:r.name,note:r.note||'',cells:r.cells.map(c=>LEVELS[c].key)}))};
+    return MatrixData.validate({format:'hatta-authority-matrix',version:1,companyName:company(),notes:document.getElementById('matrixNotes').value,roles:[...roles],rows:rows.map(r=>({name:r.name,note:r.note||'',cells:r.cells.map(c=>LEVELS[c].key)}))});
   }
   function saveLocal(){window.dispatchEvent(new Event('matrixchange'))}
   function applyData(data){
