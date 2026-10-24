@@ -1,9 +1,10 @@
 (function(root){
   'use strict';
   const keys=['none','inform','consult','review','recommend','decide','blank'];
+  const currencyText=value=>String(value).replace(/\bSAR\s*([0-9]+(?:[,.][0-9]+)*)/gi,'$1 ريال').replace(/([0-9]+(?:[,.][0-9]+)*)\s*\bSAR\b/gi,'$1 ريال');
   function text(value,max,label){
     if(typeof value!=='string'||value.length>max)throw new Error('قيمة غير صالحة: '+label);
-    return value.trim();
+    return currencyText(value.trim());
   }
   function validate(data){
     if(!data||data.format!=='hatta-authority-matrix'||data.version!==1)throw new Error('صيغة الملف غير مدعومة. استخدم ملف JSON مصدرا من مصفوفة حتى.');
@@ -24,7 +25,7 @@
     });
     return {format:'hatta-authority-matrix',version:1,companyName:text(data.companyName??'',300,'اسم الشركة'),notes:text(data.notes??'',12000,'ملاحظات المصفوفة'),roles,rows};
   }
-  const api={keys,validate,parse:raw=>validate(JSON.parse(raw.replace(/^\uFEFF/,'')))};
+  const api={keys,currencyText,validate,parse:raw=>validate(JSON.parse(raw.replace(/^\uFEFF/,'')))};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   else root.MatrixData=api;
 })(typeof window!=='undefined'?window:globalThis);
