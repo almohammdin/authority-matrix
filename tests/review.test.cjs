@@ -1,0 +1,10 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {inspect}=require('../review.js');
+const MatrixData=require('../matrix-data.js');
+const base=()=>({format:'hatta-authority-matrix',version:1,companyName:'شركة اختبار',notes:'وفق قرار الملاك',roles:['مدير','محاسب'],rows:[{name:'مصروف حتى 50,000 ريال',note:'',cells:['decide','review']}]});
+test('complete structure is distinguished from professional approval',()=>assert.deepEqual(inspect(base()),{issues:[],ready:1}));
+test('missing and duplicate approvals and unresolved roles are actionable',()=>{const d=base();d.rows=[{name:'أ',note:'',cells:['blank','none']},{name:'ب',note:'',cells:['decide','decide']}];const r=inspect(d);assert.equal(r.ready,0);assert.equal(r.issues.length,2);assert.match(r.issues[0].text,/غير المحددة/);assert.match(r.issues[1].text,/تعدد/)});
+test('placeholder amounts flagged; valid amounts and policy references are not guessed',()=>{const d=base();d.rows[0].name='مصروف حتى حد معين';assert.equal(inspect(d).issues.length,1);d.rows[0].name='مصروف حسب السياسة المالية';assert.equal(inspect(d).issues.length,0)});
+test('empty matrix is not reported complete',()=>{const d=base();d.rows=[];assert.equal(inspect(d).issues[0].type,'empty')});
+test('import rejects roles mismatch and preserves notes while dropping private context',()=>{const d=base();d.privateMemory='secret';assert.equal(MatrixData.validate(d).privateMemory,undefined);d.rows[0].cells.push('review');assert.throws(()=>MatrixData.validate(d),/لا يطابق/)});

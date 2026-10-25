@@ -79,7 +79,7 @@
       if(!visibleRow(r))return;
       const dc=r.cells.filter(c=>LEVELS[c].key==='decide').length;
       const flagTitle=dc===1?'جهة اعتماد نهائي واحدة':(dc===0?'لا توجد جهة اعتماد نهائي':'أكثر من جهة اعتماد نهائي');
-      h+=`<tr><th><button class="row-remove no-print" onclick="AM.removeRow(${ri})" title="حذف القرار" aria-label="حذف القرار">✕</button><span class="row-flag ${dc===1?'flag-ok':'flag-warn'}" title="${flagTitle}"></span>${esc(clean(r.name))}<button class="note-edit no-print" onclick="AM.editNote(${ri})" aria-label="تعديل ملاحظة القرار">ملاحظة</button>${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`;
+      h+=`<tr id="decision-${ri}" tabindex="-1"><th><button class="row-remove no-print" onclick="AM.removeRow(${ri})" title="حذف القرار" aria-label="حذف القرار">✕</button><span class="row-flag ${dc===1?'flag-ok':'flag-warn'}" title="${flagTitle}"></span>${esc(clean(r.name))}<button class="note-edit no-print" onclick="AM.editNote(${ri})" aria-label="تعديل ملاحظة القرار">ملاحظة</button>${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`;
       r.cells.forEach((v,ci)=>{
         const l=LEVELS[v];
         const display=l.label;
@@ -139,7 +139,7 @@
     const notes=document.getElementById('matrixNotes').value;
     document.getElementById('printArea').innerHTML=groups.map((group,index)=>{
       const header=`<div class="print-header"><div><img class="print-logo" src="https://almohammdin.github.io/services/assets/hatta/logo.webp" alt="حتى لحلول الأعمال"><h1>مصفوفة الصلاحيات</h1><b>${esc(company()||'اسم الشركة غير محدد')}</b><p>${esc(title)}</p></div><div class="print-meta">${new Date().toLocaleDateString('ar-SA-u-nu-latn')}<br>${filtered.length} قرار · مجموعة المناصب ${index+1} / ${groups.length}</div></div>`;
-      const table='<table><colgroup><col style="width:38%">'+group.roles.map(()=>'<col>').join('')+'</colgroup><thead><tr><th>القرار / الصلاحية وحدودها</th>'+group.roles.map(r=>`<th>${esc(r)}</th>`).join('')+'</tr></thead><tbody>'+filtered.map((r,i)=>`<tr class="${r.note.length>1500?'long-row':''}"><th><span class="decision-number">${i+1}.</span> ${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.slice(group.start,group.start+5).map(v=>`<td style="background:${LEVELS[v].color};color:${LEVELS[v].text}">${LEVELS[v].label}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+      const table='<table><colgroup><col style="width:38%">'+group.roles.map(()=>'<col>').join('')+'</colgroup><thead><tr><th>القرار / الصلاحية وحدودها</th>'+group.roles.map(r=>`<th>${esc(r)}</th>`).join('')+'</tr></thead><tbody>'+filtered.map((r,i)=>`<tr class="${(r.note||'').length>1500?'long-row':''}"><th><span class="decision-number">${i+1}.</span> ${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.slice(group.start,group.start+5).map(v=>`<td style="background:${LEVELS[v].color};color:${LEVELS[v].text}">${LEVELS[v].label}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
       return `<section class="print-group">${header}${index===0&&notes?`<div class="print-notes">${esc(notes)}</div>`:''}<div class="print-summary">فحص المصفوفة الشاملة: ${complete} بجهة اعتماد واحدة · ${missing} دون اعتماد · ${dup} باعتماد مكرر. لا يغني عن المراجعة والاعتماد الرسمي.</div>${table}<div class="print-legend">${LEVELS.map(l=>`<span>${l.label}</span>`).join(' · ')}</div></section>`;
     }).join('');
   }
@@ -148,7 +148,7 @@
   document.getElementById('resetBtn').onclick=()=>{
     if(!confirm('سيتم مسح محتوى المصفوفة بالكامل والعودة للحالة الافتراضية. هل تريد المتابعة؟'))return;
     roles=[...DEFAULT_ROLES];
-    rows=DEFAULT_ROWS.map(name=>({name,cells:DEFAULT_ROLES.map(()=>6)}));
+    rows=DEFAULT_ROWS.map(name=>({name,cells:DEFAULT_ROLES.map(()=>6),note:''}));
     document.getElementById('companyName').value='';
     document.getElementById('matrixNotes').value='';
     render();toast('تم مسح المحتوى');
@@ -204,7 +204,7 @@
   importDialog.addEventListener('close',()=>{pendingImport=null;document.getElementById('importBtn').focus()});
   document.getElementById('companyName').addEventListener('input',saveLocal);
   document.getElementById('matrixNotes').addEventListener('input',saveLocal);
-  window.AuthorityMatrix={snapshot,load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
+  window.AuthorityMatrix={snapshot,focusRow(index){document.getElementById('roleView').value='';render(false);const row=document.getElementById('decision-'+index);if(row){row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});row.focus({preventScroll:true})}},load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
 
 
   renderLegend();
