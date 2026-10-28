@@ -149,7 +149,7 @@
 
   document.getElementById('resetBtn').onclick=()=>{
     if(!confirm('سيتم مسح محتوى المصفوفة بالكامل والعودة للحالة الافتراضية. هل تريد المتابعة؟'))return;
-    roles=[...DEFAULT_ROLES];
+    roles=[...DEFAULT_ROLES];roleHolders=roles.map(()=>'');
     rows=DEFAULT_ROWS.map(name=>({name,cells:DEFAULT_ROLES.map(()=>6),note:''}));
     document.getElementById('companyName').value='';
     document.getElementById('matrixNotes').value='';
@@ -207,10 +207,10 @@
   importDialog.addEventListener('close',()=>{pendingImport=null;document.getElementById('importBtn').focus()});
   document.getElementById('companyName').addEventListener('input',saveLocal);
   document.getElementById('matrixNotes').addEventListener('input',saveLocal);
-  window.AuthorityMatrix={snapshot,focusRow(index){document.getElementById('roleView').value='';render(false);const row=document.getElementById('decision-'+index);if(row){row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});row.focus({preventScroll:true})}},load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
+  window.AuthorityMatrix={snapshot,focusRow(index){document.getElementById('roleView').value='';render(false);const row=document.getElementById('decision-'+index);if(row){row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});row.focus({preventScroll:true})}},load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];roleHolders=roles.map(()=>'');rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
 
 
-  const holderStyle=document.createElement('style');holderStyle.textContent='.role-holder{display:block;box-sizing:border-box;width:100%;min-width:110px;margin-top:8px;padding:6px 8px;border:1px solid #afc6d8;border-radius:6px;background:#fff;color:#176276;font:500 12px/1.5 inherit;text-align:center;font-family:inherit;font-size:12px}.role-holder:focus{outline:2px solid #176276;outline-offset:2px}.role-holder::placeholder{color:#667085}.role-holder-print{margin-top:5px;font-size:9px;font-weight:400;color:#bde8ef}';document.head.appendChild(holderStyle);
+  const holderStyle=document.createElement('style');holderStyle.textContent='.role-holder{display:block;box-sizing:border-box;width:100%;min-width:110px;margin-top:8px;padding:6px 8px;border:1px solid #afc6d8;border-radius:6px;background:#fff;color:#176276;font-weight:500;line-height:1.5;text-align:center;font-family:inherit;font-size:12px}.role-holder:focus{outline:2px solid #176276;outline-offset:2px}.role-holder::placeholder{color:#667085}.role-holder-print{margin-top:5px;font-size:9px;font-weight:400;color:#bde8ef}';document.head.appendChild(holderStyle);
   renderLegend();
   render();
 })();
