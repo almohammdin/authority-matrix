@@ -72,7 +72,7 @@
   function render(notify=true){
     let h='<thead><tr><th>القرار / الصلاحية</th>';
     roles.forEach((r,i)=>{
-      h+=`<th>${roles.length>1?`<button class="role-remove no-print" onclick="AM.removeRole(${i})" title="حذف العمود" aria-label="حذف ${esc(r)}">✕</button>`:''}${esc(r)}<input class="role-holder no-print" aria-label="شاغل منصب ${esc(r)}" placeholder="اسم شاغل المنصب" maxlength="200" value="${esc(roleHolders[i])}" onchange="AM.setRoleHolder(${i},this.value)"></th>`;
+      h+=`<th>${roles.length>1?`<button class="role-remove no-print" onclick="AM.removeRole(${i})" title="حذف العمود" aria-label="حذف ${esc(r)}">✕</button>`:''}${esc(r)}<input class="role-holder no-print" aria-label="شاغل منصب ${esc(r)}" placeholder="اسم شاغل المنصب" maxlength="200" value="${esc(roleHolders[i])}" oninput="AM.setRoleHolder(${i},this.value)"></th>`;
     });
     h+='</tr></thead><tbody>';
 
