@@ -32,6 +32,7 @@
   ];
 
   let roles=[...DEFAULT_ROLES];
+  let roleHolders=roles.map(()=>'');
   let rows=DEFAULT_ROWS.map(name=>({name,cells:DEFAULT_ROLES.map(()=>6),note:''}));
 
   const table=document.getElementById('matrixTable');
@@ -71,7 +72,7 @@
   function render(notify=true){
     let h='<thead><tr><th>القرار / الصلاحية</th>';
     roles.forEach((r,i)=>{
-      h+=`<th>${roles.length>1?`<button class="role-remove no-print" onclick="AM.removeRole(${i})" title="حذف العمود" aria-label="حذف ${esc(r)}">✕</button>`:''}${esc(r)}</th>`;
+      h+=`<th>${roles.length>1?`<button class="role-remove no-print" onclick="AM.removeRole(${i})" title="حذف العمود" aria-label="حذف ${esc(r)}">✕</button>`:''}${esc(r)}<input class="role-holder no-print" aria-label="شاغل منصب ${esc(r)}" placeholder="اسم شاغل المنصب" maxlength="200" value="${esc(roleHolders[i])}" onchange="AM.setRoleHolder(${i},this.value)"></th>`;
     });
     h+='</tr></thead><tbody>';
 
@@ -97,9 +98,10 @@
   }
 
   window.AM={
+    setRoleHolder(i,value){roleHolders[i]=value.trim().slice(0,200);saveLocal()},
     editNote(i){const note=prompt('ملاحظات القرار وحدود التفويض',rows[i].note||'');if(note===null)return;if(note.length>4000){toast('الحد الأقصى للملاحظة 4000 حرف');return}rows[i].note=note.trim();render()},
     cycleCell(r,c){rows[r].cells[c]=(rows[r].cells[c]+1)%LEVELS.length;render()},
-    removeRole(i){roles.splice(i,1);rows.forEach(r=>r.cells.splice(i,1));render()},
+    removeRole(i){roles.splice(i,1);roleHolders.splice(i,1);rows.forEach(r=>r.cells.splice(i,1));render()},
     removeRow(i){rows.splice(i,1);render()}
   };
 
@@ -107,7 +109,7 @@
     const i=document.getElementById('newRoleInput'),v=i.value.trim();
     if(!v)return;
     if(roles.length>=50){toast('الحد الأقصى 50 منصبا');return}if(roles.includes(v)){toast('المنصب موجود بالفعل');return}
-    roles.push(v);rows.forEach(r=>r.cells.push(6));i.value='';render();
+    roles.push(v);roleHolders.push('');rows.forEach(r=>r.cells.push(6));i.value='';render();
   };
 
   document.getElementById('addRowBtn').onclick=()=>{
@@ -139,7 +141,7 @@
     const notes=document.getElementById('matrixNotes').value;
     document.getElementById('printArea').innerHTML=groups.map((group,index)=>{
       const header=`<div class="print-header"><div><img class="print-logo" src="https://almohammdin.github.io/services/assets/hatta/logo.webp" alt="حتى لحلول الأعمال"><h1>مصفوفة الصلاحيات</h1><b>${esc(company()||'اسم الشركة غير محدد')}</b><p>${esc(title)}</p></div><div class="print-meta">${new Date().toLocaleDateString('ar-SA-u-nu-latn')}<br>${filtered.length} قرار · مجموعة المناصب ${index+1} / ${groups.length}</div></div>`;
-      const table='<table><colgroup><col style="width:38%">'+group.roles.map(()=>'<col>').join('')+'</colgroup><thead><tr><th>القرار / الصلاحية وحدودها</th>'+group.roles.map(r=>`<th>${esc(r)}</th>`).join('')+'</tr></thead><tbody>'+filtered.map((r,i)=>`<tr class="${(r.note||'').length>1500?'long-row':''}"><th><span class="decision-number">${i+1}.</span> ${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.slice(group.start,group.start+5).map(v=>`<td style="background:${LEVELS[v].color};color:${LEVELS[v].text}">${LEVELS[v].label}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
+      const table='<table><colgroup><col style="width:38%">'+group.roles.map(()=>'<col>').join('')+'</colgroup><thead><tr><th>القرار / الصلاحية وحدودها</th>'+group.roles.map((r,i)=>`<th>${esc(r)}${roleHolders[group.start+i]?`<div class="role-holder-print">${esc(roleHolders[group.start+i])}</div>`:''}</th>`).join('')+'</tr></thead><tbody>'+filtered.map((r,i)=>`<tr class="${(r.note||'').length>1500?'long-row':''}"><th><span class="decision-number">${i+1}.</span> ${esc(clean(r.name))}${r.note?`<div class="row-note">${esc(r.note)}</div>`:''}</th>`+r.cells.slice(group.start,group.start+5).map(v=>`<td style="background:${LEVELS[v].color};color:${LEVELS[v].text}">${LEVELS[v].label}</td>`).join('')+'</tr>').join('')+'</tbody></table>';
       return `<section class="print-group">${header}${index===0&&notes?`<div class="print-notes">${esc(notes)}</div>`:''}<div class="print-summary">فحص المصفوفة الشاملة: ${complete} بجهة اعتماد واحدة · ${missing} دون اعتماد · ${dup} باعتماد مكرر. لا يغني عن المراجعة والاعتماد الرسمي.</div>${table}<div class="print-legend">${LEVELS.map(l=>`<span>${l.label}</span>`).join(' · ')}</div></section>`;
     }).join('');
   }
@@ -156,11 +158,12 @@
 
   const storageKey='hatta-authority-matrix-v1';
   function snapshot(){
-    return MatrixData.validate({format:'hatta-authority-matrix',version:1,companyName:company(),notes:document.getElementById('matrixNotes').value,roles:[...roles],rows:rows.map(r=>({name:r.name,note:r.note||'',cells:r.cells.map(c=>LEVELS[c].key)}))});
+    return MatrixData.validate({format:'hatta-authority-matrix',version:1,companyName:company(),notes:document.getElementById('matrixNotes').value,roles:[...roles],roleHolders:[...roleHolders],rows:rows.map(r=>({name:r.name,note:r.note||'',cells:r.cells.map(c=>LEVELS[c].key)}))});
   }
   function saveLocal(){window.dispatchEvent(new Event('matrixchange'))}
   function applyData(data){
     roles=[...data.roles];
+    roleHolders=[...(data.roleHolders||roles.map(()=>''))];
     rows=data.rows.map(r=>({name:r.name,note:r.note,cells:r.cells.map(c=>LEVELS.findIndex(l=>l.key===c))}));
     document.getElementById('companyName').value=data.companyName;
     document.getElementById('matrixNotes').value=data.notes;
@@ -207,6 +210,7 @@
   window.AuthorityMatrix={snapshot,focusRow(index){document.getElementById('roleView').value='';render(false);const row=document.getElementById('decision-'+index);if(row){row.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});row.focus({preventScroll:true})}},load(data){applyData(MatrixData.parse(JSON.stringify(data)));document.getElementById('roleView').value='';render()},clear(){roles=[...DEFAULT_ROLES];rows=DEFAULT_ROWS.map(name=>({name,cells:roles.map(()=>6),note:''}));document.getElementById('companyName').value='';document.getElementById('matrixNotes').value='';document.getElementById('roleView').value='';document.getElementById('printArea').replaceChildren();render()},restoreLegacy(){const saved=localStorage.getItem(storageKey);if(!saved)throw new Error('لا توجد نسخة سابقة في هذا المتصفح');this.load(MatrixData.parse(saved))}};
 
 
+  const holderStyle=document.createElement('style');holderStyle.textContent='.role-holder{display:block;box-sizing:border-box;width:100%;min-width:110px;margin-top:8px;padding:6px 8px;border:1px solid #afc6d8;border-radius:6px;background:#fff;color:#176276;font:500 12px/1.5 inherit;text-align:center;font-family:inherit;font-size:12px}.role-holder:focus{outline:2px solid #176276;outline-offset:2px}.role-holder::placeholder{color:#667085}.role-holder-print{margin-top:5px;font-size:9px;font-weight:400;color:#bde8ef}';document.head.appendChild(holderStyle);
   renderLegend();
   render();
 })();
