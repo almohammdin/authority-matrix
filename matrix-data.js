@@ -12,6 +12,8 @@
     if(!Array.isArray(data.rows)||data.rows.length>500)throw new Error('الحد الأقصى 500 قرار.');
     const roles=data.roles.map(r=>text(r,200,'المنصب'));
     if(roles.some(r=>!r)||new Set(roles).size!==roles.length)throw new Error('أسماء المناصب فارغة أو مكررة.');
+    if(data.roleHolders!==undefined&&(!Array.isArray(data.roleHolders)||data.roleHolders.length!==roles.length))throw new Error('أسماء شاغلي المناصب لا تطابق عدد المناصب.');
+    const roleHolders=roles.map((_,i)=>text(data.roleHolders?.[i]??'',200,'شاغل المنصب'));
     const rows=data.rows.map(row=>{
       if(!row||!Array.isArray(row.cells)||row.cells.length!==roles.length)throw new Error('عدد خلايا القرار لا يطابق عدد المناصب.');
       const name=text(row.name,1500,'القرار');
@@ -23,7 +25,7 @@
       });
       return {name,cells,note:text(row.note??'',4000,'ملاحظة القرار')};
     });
-    return {format:'hatta-authority-matrix',version:1,companyName:text(data.companyName??'',300,'اسم الشركة'),notes:text(data.notes??'',12000,'ملاحظات المصفوفة'),roles,rows};
+    return {format:'hatta-authority-matrix',version:1,companyName:text(data.companyName??'',300,'اسم الشركة'),notes:text(data.notes??'',12000,'ملاحظات المصفوفة'),roles,roleHolders,rows};
   }
   const api={keys,currencyText,validate,parse:raw=>validate(JSON.parse(raw.replace(/^\uFEFF/,'')))};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
